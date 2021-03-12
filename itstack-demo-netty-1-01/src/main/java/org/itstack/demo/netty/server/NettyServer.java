@@ -15,7 +15,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 public class NettyServer {
 
     public static void main(String[] args) {
-        new NettyServer().bing(7397);
+        new NettyServer().bing(8398);
     }
 
     private void bing(int port) {
