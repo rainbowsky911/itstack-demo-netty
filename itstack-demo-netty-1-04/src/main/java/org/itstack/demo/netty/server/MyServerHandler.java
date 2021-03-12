@@ -2,8 +2,10 @@ package org.itstack.demo.netty.server;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 
 import java.text.SimpleDateFormat;
@@ -21,6 +23,10 @@ public class MyServerHandler extends ChannelInboundHandlerAdapter {
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+
+        //有客户端连接时 添加到channelGroup通信组
+        MyChannleHandler.channelGroup.add(ctx.channel());
+
         SocketChannel channel = (SocketChannel) ctx.channel();
         System.out.println("链接报告开始");
         System.out.println("链接报告信息：有一客户端链接到本服务端");
@@ -29,9 +35,7 @@ public class MyServerHandler extends ChannelInboundHandlerAdapter {
         System.out.println("链接报告完毕");
         //通知客户端链接建立成功
         String str = "通知客户端链接建立成功" + " " + new Date() + " " + channel.localAddress().getHostString() + "\r\n";
-        ByteBuf buf = Unpooled.buffer(str.getBytes().length);
-        buf.writeBytes(str.getBytes("GBK"));
-        ctx.writeAndFlush(buf);
+        ctx.writeAndFlush(str);
     }
 
     /**
@@ -40,6 +44,7 @@ public class MyServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("客户端断开链接" + ctx.channel().localAddress().toString());
+        MyChannleHandler.channelGroup.remove(ctx.channel());
     }
 
     @Override
@@ -48,9 +53,8 @@ public class MyServerHandler extends ChannelInboundHandlerAdapter {
         System.out.println(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + " 接收到消息：" + msg);
         //通知客户端链消息发送成功
         String str = "服务端收到：" + new Date() + " " + msg + "\r\n";
-        ByteBuf buf = Unpooled.buffer(str.getBytes().length);
-        buf.writeBytes(str.getBytes("GBK"));
-        ctx.writeAndFlush(buf);
+      // ctx.writeAndFlush(buf);
+        MyChannleHandler.channelGroup.writeAndFlush(str);
     }
 
     /**
